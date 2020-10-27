@@ -1,13 +1,13 @@
 <?php
 
 /*
-Plugin Name: Sync Post Types & Taxonomies
-Plugin URI: http://wordpress.org/extend/plugins/sync-post-types-taxonomies/
+Plugin Name: WP Sync Post Types & Taxonomies
+Plugin URI: http://wordpress.org/extend/plugins/wp-sync-post-types-taxonomies/
 Description: Provides an API for plugin developers to sync specified a post type with a specified taxonomy, multiple pairs of post types and taxonomies can be synced.
 Version: 1.1
 Author: Simon Wheatley
 */
- 
+
 /*  Copyright 2011 Simon Wheatley
 
 This program is free software; you can redistribute it and/or modify

@@ -65,11 +65,11 @@ class SPTT_Sync extends SPTT_Plugin {
 	 **/
 	function __construct() {
 		$this->setup( 'sptt', 'plugin' );
-		$this->add_action( 'admin_menu' );
+		// $this->add_action( 'admin_menu' );
 		$this->add_action( 'before_delete_post', 'cache_term_id_for_post' );
 		$this->add_action( 'created_term', null, null, 3 );
 		// $this->add_action( 'delete_post' );
-		$this->add_action( 'delete_term_taxonomy' );
+		// $this->add_action( 'delete_term_taxonomy' );
 		$this->add_action( 'edited_term', null, null, 3 );
 		$this->add_action( 'import_end' );
 		$this->add_action( 'import_start' );
