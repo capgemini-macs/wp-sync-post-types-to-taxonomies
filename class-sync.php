@@ -4,14 +4,14 @@ require_once( 'class-plugin.php' );
 
 /**
  * This class handles the syncing between post types and taxonomies.
- * 
+ *
  * @package Sync Post Types & Taxonomies
  * @since 1.0
  **/
 class SPTT_Sync extends SPTT_Plugin {
 
 	/**
-	 * A boolean flag indicating whether we are in the process 
+	 * A boolean flag indicating whether we are in the process
 	 * of syncing something. Used to avoid recursion.
 	 *
 	 * @var bool
@@ -57,7 +57,7 @@ class SPTT_Sync extends SPTT_Plugin {
 
 	// HOOKS
 	// =====
-	
+
 	/**
 	 * Initiate!
 	 *
@@ -68,18 +68,18 @@ class SPTT_Sync extends SPTT_Plugin {
 		$this->add_action( 'admin_menu' );
 		$this->add_action( 'before_delete_post', 'cache_term_id_for_post' );
 		$this->add_action( 'created_term', null, null, 3 );
-		$this->add_action( 'delete_post' );
+		// $this->add_action( 'delete_post' );
 		$this->add_action( 'delete_term_taxonomy' );
 		$this->add_action( 'edited_term', null, null, 3 );
 		$this->add_action( 'import_end' );
 		$this->add_action( 'import_start' );
 		$this->add_action( 'save_post' );
-		$this->add_action( 'trashed_post', 'delete_post' );
+		// $this->add_action( 'trashed_post', 'delete_post' );
 		$this->add_action( 'untrashed_post' );
 		$this->add_action( 'wp_trash_post', 'cache_term_id_for_post' );
 		$this->add_action( 'load-tools_page_resync_sptt', 'load_resync' );
 		$this->add_action( 'load-tools_page_relink_sptt', 'load_relink' );
-		
+
 		$this->importing = false;
 		$this->post_to_term = array();
 		$this->sync = false;
@@ -110,7 +110,7 @@ class SPTT_Sync extends SPTT_Plugin {
 		global $wpdb;
 
 		wp_enqueue_style( 'sptt-admin', $this->url( '/css/admin.css' ), array(), $this->version, 'screen' );
-		
+
 		$action = isset( $_POST[ 'action' ] ) ? $_POST[ 'action' ] : false;
 		if ( ! $action )
 			return;
@@ -119,15 +119,15 @@ class SPTT_Sync extends SPTT_Plugin {
 			$sync_direction = isset( $_POST[ 'sync_direction' ] ) ? $_POST[ 'sync_direction' ] : false;
 			$bits = explode( '|', $sync_direction );
 			$this->sync = array();
-			$this->sync[ 'from' ] = array( 
+			$this->sync[ 'from' ] = array(
 				'type' => ( 'PT' == substr( $bits[0], 0, 2 ) ) ? 'post_type' : 'taxonomy',
 				'name' => substr( $bits[0], 2 ),
 			);
-			$this->sync[ 'to' ] = array( 
+			$this->sync[ 'to' ] = array(
 				'type' => ( 'PT' == substr( $bits[1], 0, 2 ) ) ? 'post_type' : 'taxonomy',
 				'name' => substr( $bits[1], 2 ),
 			);
-			
+
 		} else if ( 'do_sync' == $action ) {
 			check_admin_referer( 'sync', '_sptt_nonce' );
 
@@ -141,14 +141,14 @@ class SPTT_Sync extends SPTT_Plugin {
 			// Check the tax and post type are valid for syncing, and
 			// sync with each other
 
-			$die_message = sprintf( 
-				_x( 'Sorry, you cannot synchronise the %1$s called "%2$s" with the %3$s called "%4$s".', '', 'sptt' ), 
-				( 'taxonomy' == $sync[ 'from' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ), 
-				$this->get_label_name( $sync[ 'from' ][ 'name' ], $sync[ 'from' ][ 'type' ] ), 
+			$die_message = sprintf(
+				_x( 'Sorry, you cannot synchronise the %1$s called "%2$s" with the %3$s called "%4$s".', '', 'sptt' ),
+				( 'taxonomy' == $sync[ 'from' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ),
+				$this->get_label_name( $sync[ 'from' ][ 'name' ], $sync[ 'from' ][ 'type' ] ),
 				( 'taxonomy' == $sync[ 'to' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ),
-				$this->get_label_name( $sync[ 'to' ][ 'name' ], $sync[ 'to' ][ 'type' ] ) 
+				$this->get_label_name( $sync[ 'to' ][ 'name' ], $sync[ 'to' ][ 'type' ] )
 			);
-			
+
 			if ( 'taxonomy' == $sync[ 'to' ][ 'type' ] ) {
 
 				// Syncing from a post type, to a taxonomy
@@ -169,7 +169,7 @@ class SPTT_Sync extends SPTT_Plugin {
 				$this->set_admin_notice( sprintf( __( 'Deleted %d terms', 'sptt' ), count( $terms ) ) );
 				// Clear some memory
 				unset( $terms );
-				
+
 				// Resync, re-creating the terms
 				$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_type = %s ", $sync[ 'from' ][ 'name' ] ) );
 				$this->set_admin_notice( sprintf( __( 'Preparing to create %d terms synced from the posts', 'sptt' ), count( $post_ids ) ) );
@@ -179,16 +179,16 @@ class SPTT_Sync extends SPTT_Plugin {
 					wp_cache_delete( $post_id, 'posts' );
 				}
 
-				$success_msg = sprintf( 
-					__( 'Re-synchronisation of %1$d items from the %2$s called "%3$s" to the %4$s called "%5$s".', 'sptt' ), 
+				$success_msg = sprintf(
+					__( 'Re-synchronisation of %1$d items from the %2$s called "%3$s" to the %4$s called "%5$s".', 'sptt' ),
 					count( $post_ids ),
-					( 'taxonomy' == $sync[ 'from' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ), 
-					$this->get_label_name( $sync[ 'from' ][ 'name' ], $sync[ 'from' ][ 'type' ] ), 
+					( 'taxonomy' == $sync[ 'from' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ),
+					$this->get_label_name( $sync[ 'from' ][ 'name' ], $sync[ 'from' ][ 'type' ] ),
 					( 'taxonomy' == $sync[ 'to' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ),
-					$this->get_label_name( $sync[ 'to' ][ 'name' ], $sync[ 'to' ][ 'type' ] ) 
+					$this->get_label_name( $sync[ 'to' ][ 'name' ], $sync[ 'to' ][ 'type' ] )
 				);
 				$this->set_admin_notice( $success_msg );
-				
+
 			} else {
 
 				// Syncing from a taxonomy, to a post type
@@ -211,17 +211,17 @@ class SPTT_Sync extends SPTT_Plugin {
 					$this->process_term( $term->term_id, $term->taxonomy );
 				}
 
-				$success_msg = sprintf( 
-					__( 'Re-synchronisation of %1$d items from the %2$s called "%3$s" to the %4$s called "%5$s".', 'sptt' ), 
+				$success_msg = sprintf(
+					__( 'Re-synchronisation of %1$d items from the %2$s called "%3$s" to the %4$s called "%5$s".', 'sptt' ),
 					count( $terms ),
-					( 'taxonomy' == $sync[ 'from' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ), 
-					$this->get_label_name( $sync[ 'from' ][ 'name' ], $sync[ 'from' ][ 'type' ] ), 
+					( 'taxonomy' == $sync[ 'from' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ),
+					$this->get_label_name( $sync[ 'from' ][ 'name' ], $sync[ 'from' ][ 'type' ] ),
 					( 'taxonomy' == $sync[ 'to' ][ 'type' ] ) ? __( 'taxonomy', 'sptt' ) : __( 'post type', 'sptt' ),
-					$this->get_label_name( $sync[ 'to' ][ 'name' ], $sync[ 'to' ][ 'type' ] ) 
+					$this->get_label_name( $sync[ 'to' ][ 'name' ], $sync[ 'to' ][ 'type' ] )
 				);
 				$this->set_admin_notice( $success_msg );
 			}
-			
+
 			wp_redirect( admin_url( '/tools.php?page=resync_sptt	' ) );
 			exit;
 		}
@@ -236,7 +236,7 @@ class SPTT_Sync extends SPTT_Plugin {
 		global $wpdb;
 
 		wp_enqueue_style( 'sptt-admin', $this->url( '/css/admin.css' ), array(), $this->version, 'screen' );
-		
+
 		$action = isset( $_POST[ 'action' ] ) ? $_POST[ 'action' ] : false;
 		if ( ! $action )
 			return;
@@ -265,7 +265,7 @@ class SPTT_Sync extends SPTT_Plugin {
 			$mids = $wpdb->get_col( $wpdb->prepare( " SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = '_sptt_term_id' AND post_id = %d ", $post_id ) );
 			foreach ( $mids as $mid )
 				delete_meta( $mid );
-			
+
 			// Delete existing post meta linking to this term ID
 			$sql = " SELECT post_ID FROM $wpdb->postmeta WHERE $wpdb->postmeta.meta_key = '_sptt_term_id' AND CAST( $wpdb->postmeta.meta_value AS CHAR ) = %d ";
 			$mids = $wpdb->get_col( $wpdb->prepare( " SELECT meta_id FROM $wpdb->postmeta WHERE $wpdb->postmeta.meta_key = '_sptt_term_id' AND CAST( $wpdb->postmeta.meta_value AS CHAR ) = %d ", $term_id ) );
@@ -274,22 +274,22 @@ class SPTT_Sync extends SPTT_Plugin {
 
 			// Insert new postmeta
 			add_post_meta( $post_id, '_sptt_term_id', $term_id, true );
-			
+
 			// @TODO: Do a sync at this point? Which way would we do it?
 
 			$post = get_post( $post_id );
 			$taxonomy = sptt_post_type_syncs_with( $post->post_type );
 			$term = get_term( $term_id, $taxonomy );
 
-			$success_msg = sprintf( 
-				__( 'Successfully linked post "%1$s" (ID %2$d) with term %3$s (ID %4$d). When you next edit either the term or post, the data will overwrite the post or term which it is synchronised with.', 'sptt' ), 
+			$success_msg = sprintf(
+				__( 'Successfully linked post "%1$s" (ID %2$d) with term %3$s (ID %4$d). When you next edit either the term or post, the data will overwrite the post or term which it is synchronised with.', 'sptt' ),
 				get_the_title( $post_id ),
-				$post_id, 
-				$term->name, 
-				$term_id 
+				$post_id,
+				$term->name,
+				$term_id
 			);
 			$this->set_admin_notice( $success_msg );
-			
+
 			wp_redirect( admin_url( '/tools.php?page=relink_sptt	' ) );
 			exit;
 		}
@@ -308,7 +308,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WP untrash_post action to (re)create 
+	 * Hooks the WP untrash_post action to (re)create
 	 * the appropriate term.
 	 *
 	 * @param int $post_id The ID of a Post
@@ -324,7 +324,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	/**
 	 * Hooks the WP before_delete_post and wp_trash_post actions to store
 	 * a brief cache of post_ids related to term_ids, as
-	 * the meta we rely on will be deleted before the 
+	 * the meta we rely on will be deleted before the
 	 * delete_post action is fired.
 	 *
 	 * @param int $post_id The ID of the WP post being deleted
@@ -335,7 +335,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WP delete_post action to delete any 
+	 * Hooks the WP delete_post action to delete any
 	 * synced term.
 	 *
 	 * @param int $post_id The ID of the WP post being deleted
@@ -363,11 +363,11 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WP created_term action, which is fired when a term is 
+	 * Hooks the WP created_term action, which is fired when a term is
 	 * created in the 'organisation' taxonomy.
 	 *
-	 * @param int $term_id The term_id of the Term 
-	 * @param int $tt_id The term_taxonomy_id of the Term 
+	 * @param int $term_id The term_id of the Term
+	 * @param int $tt_id The term_taxonomy_id of the Term
 	 * @return void
 	 * @author Simon Wheatley
 	 **/
@@ -376,11 +376,11 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WP edited_term action, which is fired when a term is 
+	 * Hooks the WP edited_term action, which is fired when a term is
 	 * edited in the 'organisation' taxonomy.
 	 *
-	 * @param int $term_id The term_id of the Term 
-	 * @param int $tt_id The term_taxonomy_id of the Term 
+	 * @param int $term_id The term_id of the Term
+	 * @param int $tt_id The term_taxonomy_id of the Term
 	 * @return void
 	 * @author Simon Wheatley
 	 **/
@@ -389,10 +389,10 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WP delete_term_taxonomy action, which is fired just before a term is 
+	 * Hooks the WP delete_term_taxonomy action, which is fired just before a term is
 	 * deleted in the 'organisation' taxonomy.
 	 *
-	 * @param int $tt_id The term_taxonomy_id of the Term 
+	 * @param int $tt_id The term_taxonomy_id of the Term
 	 * @return void
 	 * @author Simon Wheatley
 	 **/
@@ -423,7 +423,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WordPress Importer import_start action to 
+	 * Hooks the WordPress Importer import_start action to
 	 * note when the import starts (natch).
 	 *
 	 * @return void
@@ -433,7 +433,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Hooks the WordPress Importer import_end action to 
+	 * Hooks the WordPress Importer import_end action to
 	 * note when the import ends (obvs).
 	 *
 	 * @return void
@@ -446,7 +446,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	// =========
 
 	/**
-	 * A callback function providing HTML for the Re-sync 
+	 * A callback function providing HTML for the Re-sync
 	 * management page.
 	 *
 	 * @return void
@@ -461,7 +461,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * A callback function providing HTML for the Re-sync 
+	 * A callback function providing HTML for the Re-sync
 	 * management page.
 	 *
 	 * @return void
@@ -474,7 +474,7 @@ class SPTT_Sync extends SPTT_Plugin {
 			$this->render_admin( 'management-relink.php', $vars );
 		}
 	}
-	
+
 	// METHODS
 	// =======
 
@@ -493,7 +493,7 @@ class SPTT_Sync extends SPTT_Plugin {
 		$taxonomy = $this->post_type_syncs_with( $post->post_type );
 		if ( ! $taxonomy || ! $this->post_status_synced( $post->post_status, $post->post_status ) )
 			return;
-		
+
 		$edit_url = add_query_arg( array( 'post' => $post_id, 'action' => 'edit' ), admin_url( 'post.php' ) );
 		$term_id = (int) get_post_meta( $post_id, '_sptt_term_id', true );
 		$this->syncing = true;
@@ -536,7 +536,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	/**
 	 * Handles terms being created or edited.
 	 *
-	 * @param int $term_id The term_id of the Term 
+	 * @param int $term_id The term_id of the Term
 	 * @return void
 	 * @author Simon Wheatley
 	 **/
@@ -547,11 +547,11 @@ class SPTT_Sync extends SPTT_Plugin {
 		$term = get_term( $term_id, $taxonomy );
 
 		$post_id = $this->get_related_post_for_term( $term_id );
-	
+
 		$post_type = $this->taxonomy_syncs_with( $taxonomy );
 		if ( ! $post_type )
 			return;
-	
+
 		$post_data = array(
 			'post_name' => $term->slug,
 			'post_status' => 'publish',
@@ -600,12 +600,12 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Returns the taxonomy that the passed post_type is 
+	 * Returns the taxonomy that the passed post_type is
 	 * synced with. If no post_type is specified, the method
 	 * tries to extract the post type from the current post in
 	 * the loop of associated with this single/singular page.
 	 *
-	 * @param string $post_type The post_type which we are checking 
+	 * @param string $post_type The post_type which we are checking
 	 * @return string|boolean Either the name of the taxonomy, or false
 	 **/
 	function post_type_syncs_with( $post_type = null ) {
@@ -623,10 +623,10 @@ class SPTT_Sync extends SPTT_Plugin {
 	}
 
 	/**
-	 * Returns the post_type that the passed taxonomy is 
+	 * Returns the post_type that the passed taxonomy is
 	 * synced with.
 	 *
-	 * @param string $post_type The taxonomy which we are checking 
+	 * @param string $post_type The taxonomy which we are checking
 	 * @return string|boolean Either the name of the post_type, or false
 	 **/
 	function taxonomy_syncs_with( $taxonomy = null ) {
@@ -648,8 +648,8 @@ class SPTT_Sync extends SPTT_Plugin {
 	 * Determines whether a particular post_status for a particular
 	 * post_type is synced.
 	 *
-	 * @param string $post_status The name of the post_status 
-	 * @param string $post_type The name of the post_type 
+	 * @param string $post_status The name of the post_status
+	 * @param string $post_type The name of the post_type
 	 * @return boolean True if it is synced
 	 **/
 	function post_status_synced( $post_status, $post_type ) {
@@ -691,7 +691,7 @@ class SPTT_Sync extends SPTT_Plugin {
 	/**
 	 * Return the name of a post type of taxonomy.
 	 *
-	 * @param string $name The post type or taxonomy name to get the name label for 
+	 * @param string $name The post type or taxonomy name to get the name label for
 	 * @param string $type Either 'post_type' or 'taxonomy'
 	 * @return string The name from the labels for the taxonomy or post type
 	 **/
@@ -706,7 +706,7 @@ class SPTT_Sync extends SPTT_Plugin {
 		}
 	}
 
-} // END SPTT_Sync class 
+} // END SPTT_Sync class
 
 global $sptt_sync;
 $sptt_sync = new SPTT_Sync();
